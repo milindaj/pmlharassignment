@@ -15,7 +15,7 @@ The main objectives of this study are to
 * Use the model developed to predict 20 different test cases provided
 
 ## Load and preprocess data
-We will first download the available data and do a little bit of cleaning. Here its assumed that data files are downloaded and working directory is set. Alteratively we can download the data from website through R and load it.
+We will first download the available data and do a little bit of cleaning. Here its assumed that data files are downloaded and working directory is set. Alternatively we can download the data from website through R and load it.
 
 ```{r, results='hide', message=FALSE, warning=FALSE}
 ## Load the required libraries 
@@ -41,7 +41,7 @@ Looking at the csv sheet we can see that there many columns with lot of NAs. We 
 sum(complete.cases(trainData))
 ```
 
-Remove columns with significant missing or NA values. Here assuming columns with > **90%** NA as not needed.Also remove first 7 colmns which are not needed in prediction. If these (variables) are retains they will instead misslead the fit.
+Remove columns with significant missing or NA values. Here assuming columns with > **90%** NA as not needed.Also remove first 7 columns which are not needed in prediction. If these (variables) are retains they will instead mislead the fit.
 
 ```{r}
 ## remove columns with NAs
@@ -58,7 +58,7 @@ testData <- testData[-c(1:7)]
 dim(trainData)
 ```
 
-## Data partioning
+## Data partitioning
 We will now partition the training dataset for training and validation. Further processing including exploratory analysis, evaluation of predictor variables etc will only be performed on training data.  
 
 ```{r}

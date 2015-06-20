@@ -70,7 +70,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 </div>
 <div id="load-and-preprocess-data" class="section level2">
 <h2>Load and preprocess data</h2>
-<p>We will first download the available data and do a little bit of cleaning. Here its assumed that data files are downloaded and working directory is set. Alteratively we can download the data from website through R and load it.</p>
+<p>We will first download the available data and do a little bit of cleaning. Here its assumed that data files are downloaded and working directory is set. Alternatively we can download the data from website through R and load it.</p>
 <pre class="r"><code>## Load the required libraries 
 library(caret);library(randomForest); library(doParallel); library(foreach); library(corrplot);</code></pre>
 <pre class="r"><code>set.seed(12345) ## for reproducability
@@ -87,7 +87,7 @@ dim(trainData)</code></pre>
 <p>Looking at the csv sheet we can see that there many columns with lot of NAs. We can reconfirm this as a precursor for further cleanup</p>
 <pre class="r"><code>sum(complete.cases(trainData))</code></pre>
 <pre><code>## [1] 406</code></pre>
-<p>Remove columns with significant missing or NA values. Here assuming columns with &gt; <strong>90%</strong> NA as not needed.Also remove first 7 colmns which are not needed in prediction. If these (variables) are retains they will instead misslead the fit.</p>
+<p>Remove columns with significant missing or NA values. Here assuming columns with &gt; <strong>90%</strong> NA as not needed.Also remove first 7 columns which are not needed in prediction. If these (variables) are retains they will instead mislead the fit.</p>
 <pre class="r"><code>## remove columns with NAs
 missingData = is.na(trainData)
 threshold &lt;- nrow(trainData) * 0.90
@@ -102,8 +102,8 @@ testData &lt;- testData[-c(1:7)]
 dim(trainData)</code></pre>
 <pre><code>## [1] 19622    53</code></pre>
 </div>
-<div id="data-partioning" class="section level2">
-<h2>Data partioning</h2>
+<div id="data-partitioning" class="section level2">
+<h2>Data partitioning</h2>
 <p>We will now partition the training dataset for training and validation. Further processing including exploratory analysis, evaluation of predictor variables etc will only be performed on training data.</p>
 <pre class="r"><code>inTrain &lt;- createDataPartition(y=trainData$classe,p=0.75, list=FALSE)
 training &lt;- trainData[inTrain,]
@@ -126,7 +126,7 @@ sum(nsvars[&quot;nzv&quot;] == TRUE)</code></pre>
     rfModel &lt;- randomForest(classe~., data=training, ntree = 500)
 )</code></pre>
 <pre><code>##    user  system elapsed 
-##  62.257   1.209  66.570</code></pre>
+##  58.901   0.893  60.504</code></pre>
 <pre class="r"><code>##predict on testing data
 pred = predict(rfModel, newdata = testing)
 
