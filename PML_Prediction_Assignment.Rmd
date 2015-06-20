@@ -1,6 +1,6 @@
 ---
 title: "PML Prediction Assignment"
-author: "Milind"
+author: "Milindaj"
 output: html_document
 ---
 

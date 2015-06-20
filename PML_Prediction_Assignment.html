@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
-<meta name="author" content="Milind" />
+<meta name="author" content="Milindaj" />
 
 
 <title>PML Prediction Assignment</title>
@@ -53,7 +53,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 
 <div id="header">
 <h1 class="title">PML Prediction Assignment</h1>
-<h4 class="author"><em>Milind</em></h4>
+<h4 class="author"><em>Milindaj</em></h4>
 </div>
 
 
@@ -126,7 +126,7 @@ sum(nsvars[&quot;nzv&quot;] == TRUE)</code></pre>
     rfModel &lt;- randomForest(classe~., data=training, ntree = 500)
 )</code></pre>
 <pre><code>##    user  system elapsed 
-##  58.118   0.839  59.646</code></pre>
+##  62.257   1.209  66.570</code></pre>
 <pre class="r"><code>##predict on testing data
 pred = predict(rfModel, newdata = testing)
 
