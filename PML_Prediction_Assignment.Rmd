@@ -1,0 +1,150 @@
+---
+title: "PML Prediction Assignment"
+author: "Milind"
+output: html_document
+---
+
+## Executive summary
+In this study, our goal will be to use the Human Activity Recognition data and build model to predict user actions. This data contains readings from accelerometers mounted on the belt, forearm, arm, and dumbell of 6 participants. The participants were asked to perform barbell lifts correctly and incorrectly in 5 different ways. You can read more about the data and other details in the *Groupware @ LES* website.
+
+The main objectives of this study are to
+
+* Study the the manner available data and identify the suitable variables which can be used to build prediction models
+* Build a prediction model using different features and cross validation technique.
+* Evaluate model performance by calculating in sample and out of sample error
+* Use the model developed to predict 20 different test cases provided
+
+## Load and preprocess data
+We will first download the available data and do a little bit of cleaning. Here its assumed that data files are downloaded and working directory is set. Alteratively we can download the data from website through R and load it.
+
+```{r, results='hide', message=FALSE, warning=FALSE}
+## Load the required libraries 
+library(caret);library(randomForest); library(doParallel); library(foreach); library(corrplot);
+```
+
+```{r}
+
+set.seed(12345) ## for reproducability
+
+## setup parallel processing environment
+registerDoParallel(makeCluster(detectCores()-1))
+
+## Load training and testing data, considering the strings 'NA', 'NULL' and blank spaces to be NA values
+trainData <- read.csv('pml-training.csv', na.strings=c('', 'NA', 'NULL'))
+testData <- read.csv('pml-testing.csv', na.strings=c('', 'NA', 'NULL'))
+
+dim(trainData)
+```
+Looking at the csv sheet we can see that there many columns with lot of NAs. We can reconfirm this as a precursor for further cleanup
+
+```{r}
+sum(complete.cases(trainData))
+```
+
+Remove columns with significant missing or NA values. Here assuming columns with > **90%** NA as not needed.Also remove first 7 colmns which are not needed in prediction. If these (variables) are retains they will instead misslead the fit.
+
+```{r}
+## remove columns with NAs
+missingData = is.na(trainData)
+threshold <- nrow(trainData) * 0.90
+NAColumns = which(colSums(missingData) > threshold)
+
+trainData = trainData[, -NAColumns]
+testData = testData[, -NAColumns]
+
+## remove 1st 7 columns(variables)
+trainData <- trainData[-c(1:7)]
+testData <- testData[-c(1:7)]
+dim(trainData)
+```
+
+## Data partioning
+We will now partition the training dataset for training and validation. Further processing including exploratory analysis, evaluation of predictor variables etc will only be performed on training data.  
+
+```{r}
+inTrain <- createDataPartition(y=trainData$classe,p=0.75, list=FALSE)
+training <- trainData[inTrain,]
+testing <- trainData[-inTrain,]
+dim(training)
+```
+
+Before developing model we will do some exploratory analysis to identify the available variables and evaluate suitable predictors.
+
+Check if there are any near zero variables.
+```{r}
+## check if there are any near zero variables in the cleaned up data
+nsvars <- nearZeroVar(training,saveMetrics=TRUE)
+sum(nsvars["nzv"] == TRUE)
+```
+Since there no near zero covariates we will not remove any further columns based on near zero variables analysis.
+
+Refer to the **Appendix** for correlation matrix between the predictor variables (*Figure 1*) as well as the plot showing relation between some of the predictor variables and the outcome **classe** variable(*Figure 2*). Based on these plots we can conclude that the data looks mostly non linear and thus prediction models such as random forest would be more suitable for this data.   
+
+## Modeling
+Based on the analysis done so far we will use `RandomForest` model for developing the predictor. I have also considered `rpart` model. See notes for further details on this model. `RandomForest` model automatically selects important variables and is robust to correlated covariates & outliers in general. I have used RandomForest algorithm directly instead of using the `Caret` `train` function as it seems to be much more efficient and more importantly run faster. Given the nature of assignment and the limited system resources I have, I found this approach to be more suitable. I have set number of trees as 500 as that will give enough accuracy.
+
+```{r}
+system.time(
+    rfModel <- randomForest(classe~., data=training, ntree = 500)
+)
+
+##predict on testing data
+pred = predict(rfModel, newdata = testing)
+
+##build confusion matrix
+(confM <- confusionMatrix(pred, testing$classe))
+```
+
+As we can see, this model gives **`r paste(round(confM$overall["Accuracy"]*100,2),"%", sep="")`** out of sample accuracy which is sufficient for the purpose of this assignment. In sample accuracy is **100%** which is as expected.
+
+## Predicting test cases
+Finally we apply the model to the original testing data set given for this assignment.
+
+```{r}
+results <- predict(rfModel, testData)
+(results <- as.character(results))
+```
+
+## Notes
+
+* I have also tried developing the model using `train` function from caret package. I tried options such as 5 fold CV and 10 fold CV. `train` took considerably longer time to compared to using RandomForest function and also there was negligible change in the accuracy compared to using RandomForest directly. May be some additional parameter configuration trough train control would have made some difference
+* I uploaded the results generated by predicting the 20 testing cases and all have passed. This indicates the model developed is of good accuracy and suitable.
+* I also developed a `rpart` model. This gave only **72.29%** accuracy. I have not provided the details here due to space limitations
+* In this assignment did not perform any PCA but it can be considered for real life problem.
+
+## Appendix
+
+**Figure 1. Correlation matrix between the predictor variables**
+
+```{r}
+corrPlot <- cor(training[, -length(names(training))])
+corrplot(corrPlot, method="color")
+```
+
+**Figure 2. Plots showing relation of 1^st^ 10 predictor variables with class**
+
+```{r}
+  par(mfrow = c(2, 5), mar = c(6, 4, 4, 2), oma = c(0, 0, 2, 0))
+  m <- training[,53] ##classe variables
+  names <- colnames(training)
+
+  draw_scatter <- function(m, x, name) {
+      plot(x,m, col = "steelblue", ylab = "class", xlab=paste("class vs ", name))
+  }
+  draw_scatter(m, training[,1], names[1]); draw_scatter(m, training[,2], names[2])
+  draw_scatter(m, training[,3], names[3]); draw_scatter(m, training[,4], names[4])
+  draw_scatter(m, training[,5], names[5]); draw_scatter(m, training[,6], names[6])
+  draw_scatter(m, training[,7], names[7]); draw_scatter(m, training[,8], names[8])
+  draw_scatter(m, training[,9], names[9]); draw_scatter(m, training[,10], names[10])
+  mtext("Fig 02 - comparision of class with first 10 variables of the training set ", outer = TRUE)
+
+```
+
+**Figure 3. Variable Importance Plot for the generated model**
+
+```{r}
+varImpPlot(rfModel)
+```
+
+## Reference
+You can read more about the HAR data which is used in this assignment from the website - <http://groupware.les.inf.puc-rio.br/har#weight_lifting_exercises#ixzz35JVTyesz>
